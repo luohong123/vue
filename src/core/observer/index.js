@@ -21,6 +21,8 @@ const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
 /**
  * In some cases we may want to disable observation inside a component's
  * update computation.
+ * 在某些情况下，我们可能希望禁用组件内部的观察
+ * 更新计算
  */
 export let shouldObserve: boolean = true
 
@@ -33,18 +35,24 @@ export function toggleObserving (value: boolean) {
  * object. Once attached, the observer converts the target
  * object's property keys into getter/setters that
  * collect dependencies and dispatch updates.
+ * 附加到每个观察者的观察者类
+ * 对象。 附加后，观察者将转换目标
+ * 将对象的属性键插入获取器/设置器
+ * 收集依赖关系并调度更新。
  */
 export class Observer {
   value: any;
   dep: Dep;
+  // 具有该对象作为根$ data的vm的数量
   vmCount: number; // number of vms that have this object as root $data
+
 
   constructor (value: any) {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
     def(value, '__ob__', this)
-    if (Array.isArray(value)) {
+    if (Array.isArray(value)) { // 检测传递的值是否是一个 Array
       if (hasProto) {
         protoAugment(value, arrayMethods)
       } else {
@@ -60,16 +68,18 @@ export class Observer {
    * Walk through all properties and convert them into
    * getter/setters. This method should only be called when
    * value type is Object.
+   * 遍历所有属性并将它们转换为getter / setter。 仅当值类型为Object时才应调用此方法。
    */
   walk (obj: Object) {
-    const keys = Object.keys(obj)
+    const keys = Object.keys(obj) // 返回一个由一个给定对象的自身可枚举属性组成的数组,数组中属性名的排列顺序和使用 for...in 循环遍历该对象时返回的顺序一致 。
     for (let i = 0; i < keys.length; i++) {
       defineReactive(obj, keys[i])
     }
   }
 
   /**
-   * Observe a list of Array items.
+   * Observe a list of Array items. 
+   * 观察数组项列表
    */
   observeArray (items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {
@@ -83,6 +93,7 @@ export class Observer {
 /**
  * Augment a target Object or Array by intercepting
  * the prototype chain using __proto__
+ * 通过使用__proto__截取原型链来增强目标对象或数组
  */
 function protoAugment (target, src: Object) {
   /* eslint-disable no-proto */
@@ -93,6 +104,8 @@ function protoAugment (target, src: Object) {
 /**
  * Augment a target Object or Array by defining
  * hidden properties.
+ * 通过定义增强目标对象或数组
+ * 隐藏的属性。
  */
 /* istanbul ignore next */
 function copyAugment (target: Object, src: Object, keys: Array<string>) {
@@ -106,6 +119,8 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * Attempt to create an observer instance for a value,
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
+ * 尝试为某个值创建一个观察者实例，
+ * 如果成功观察到该观察者，则返回新的观察者，如果该值已有一个观察者，则返回现有的观察者。
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
   if (!isObject(value) || value instanceof VNode) {
@@ -118,6 +133,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     shouldObserve &&
     !isServerRendering() &&
     (Array.isArray(value) || isPlainObject(value)) &&
+    // 判断一个对象是否是可扩展的（是否可以在它上面添加新的属性）
     Object.isExtensible(value) &&
     !value._isVue
   ) {
@@ -131,6 +147,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
 
 /**
  * Define a reactive property on an Object.
+ * 在对象上定义响应性属性。
  */
 export function defineReactive (
   obj: Object,
@@ -140,8 +157,9 @@ export function defineReactive (
   shallow?: boolean
 ) {
   const dep = new Dep()
-
-  const property = Object.getOwnPropertyDescriptor(obj, key)
+  // 用来获取一个对象的所有自身属性的描述符
+  const property = Object.getOw
+  nPropertyDescriptor(obj, key) 
   if (property && property.configurable === false) {
     return
   }
@@ -154,9 +172,10 @@ export function defineReactive (
   }
 
   let childOb = !shallow && observe(val)
-  Object.defineProperty(obj, key, {
-    enumerable: true,
-    configurable: true,
+  // 直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象
+  Object.defineProperty(obj, key, { 
+    enumerable: true, // 可枚举
+    configurable: true, 
     get: function reactiveGetter () {
       const value = getter ? getter.call(obj) : val
       if (Dep.target) {
@@ -170,7 +189,7 @@ export function defineReactive (
       }
       return value
     },
-    set: function reactiveSetter (newVal) {
+    set: function reactiveSetter (newVal) { // 当属性值修改时，触发执行该方法
       const value = getter ? getter.call(obj) : val
       /* eslint-disable no-self-compare */
       if (newVal === value || (newVal !== newVal && value !== value)) {
@@ -197,6 +216,7 @@ export function defineReactive (
  * Set a property on an object. Adds the new property and
  * triggers change notification if the property doesn't
  * already exist.
+ * 在对象上设置属性。 添加新属性，如果该属性尚不存在，则触发更改通知
  */
 export function set (target: Array<any> | Object, key: any, val: any): any {
   if (process.env.NODE_ENV !== 'production' &&
@@ -232,6 +252,7 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
 
 /**
  * Delete a property and trigger change if necessary.
+ * 删除属性，并在必要时触发更改。
  */
 export function del (target: Array<any> | Object, key: any) {
   if (process.env.NODE_ENV !== 'production' &&
@@ -264,6 +285,7 @@ export function del (target: Array<any> | Object, key: any) {
 /**
  * Collect dependencies on array elements when the array is touched, since
  * we cannot intercept array element access like property getters.
+ * 触摸数组时收集对数组元素的依赖关系，因为我们无法像属性获取器那样拦截数组元素的访问
  */
 function dependArray (value: Array<any>) {
   for (let e, i = 0, l = value.length; i < l; i++) {
